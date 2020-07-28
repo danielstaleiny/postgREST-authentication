@@ -16,9 +16,10 @@ Object {
 }
 `;
 
-exports[`/rpc/register Success 201, no csrf 1`] = `
+exports[`/rpc/register Success 201 2`] = `
 Object {
   "body": Object {
+    "csrf": "checked",
     "email": "test2@email.com",
     "id": 4,
     "name": "New user2",

@@ -18,17 +18,17 @@ describe('/rpc/register', () => {
     expect(res).toMatchSnapshot()
   })
 
-  test('Success 201, no csrf', async () => {
+  test('Success 201', async () => {
     const res = await post('rpc/register')({
       body: {
         name: 'New user2',
         email: 'test2@email.com',
         password: 'pass',
-        csrf: false,
       },
     })
     res.body.token = 'checked'
     res.body.refresh_token = 'checked'
+    res.body.csrf = 'checked'
     expect(res).toMatchSnapshot()
   })
 })

@@ -33,9 +33,9 @@
     "serve": "serve -l 4000 _site",
     "web:check": "lighthouse http://l:4000/ --view",
     "web:hint": "npx hint http://l:8080/",
-    "test_db": "node tests/bin/test_db.js",
-    "test": "npm run test_db && npm run test_api",
-    "test_api": "node scripts/reset-db-now.js && jest"
+    "test:db": "node tests/bin/test_db.js",
+    "test": "run-p test:*",
+    "test:api": "node scripts/reset-db-now.js && jest"
   },
   "dependencies": {
     "dotenv": "8.2.0",
