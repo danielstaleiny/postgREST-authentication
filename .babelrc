@@ -1,6 +1,11 @@
 {
-    "presets": [
-        "@babel/preset-env", {
-            "include": ["@babel/plugin-transform-strict-mode" ]
-      }]
+  "presets": [
+    "@babel/preset-env",
+    {
+      "include": ["@babel/plugin-transform-strict-mode"],
+      "targets": {
+        "node": "current"
+      }
+    }
+  ]
 }
