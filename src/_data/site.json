@@ -1,5 +1,5 @@
 {
-    "title": "TODO",
-    "description": "TODO",
-    "lang": "en"
+  "title": "PostgREST authentication",
+  "description": "Authentication example with different strategies",
+  "lang": "en"
 }

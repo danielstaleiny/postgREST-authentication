@@ -1,4 +1,0 @@
-# localhost:3000
-
-User-agent: *
-Disallow: *
