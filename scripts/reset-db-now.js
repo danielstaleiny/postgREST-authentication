@@ -1,2 +1,2 @@
-const reset = require('../util/reset-db')
+const reset = require('../util/reset-db.js')
 reset()

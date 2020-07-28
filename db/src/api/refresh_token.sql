@@ -1,4 +1,4 @@
-create or replace function refresh_token(refresh_token text, csrf text default null, jwt_cookie boolean default false ) returns json as $$
+create or replace function refresh_token(refresh_token text, csrf text default null ) returns json as $$
 declare
     usr record;
     ses record;
@@ -28,30 +28,17 @@ begin
         where id = ses.id;
 
 
-        if jwt_cookie is true then
-           head := request.header('host') || '-' ||  request.header('user-agent');
-           token := pgjwt.sign(
-                 json_build_object(
-                    'role', usr.role,
-                    'user_id', usr.id,
-                    'exp', extract(epoch from now())::integer + settings.get('jwt_lifetime')::int,
-                    'user-agent', head
-                ),
-                settings.get('jwt_secret')
-            );
-        else
-            token := pgjwt.sign(
-                        json_build_object(
-                             'role', usr.role,
-                             'user_id', usr.id,
-                             'exp', extract(epoch from now())::integer + settings.get('jwt_lifetime')::int
-                        ),
-                        settings.get('jwt_secret')
-                    );
-        end if;
+        token := pgjwt.sign(
+                    json_build_object(
+                         'role', usr.role,
+                         'user_id', usr.id,
+                         'exp', extract(epoch from now())::integer + settings.get('jwt_lifetime')::int
+                    ),
+                    settings.get('jwt_secret')
+                );
         return json_build_object('token', token);
     end if;
 end
 $$ volatile security definer language plpgsql;
 -- by default all functions are accessible to the public, we need to remove that and define our specific access rules
-revoke all privileges on function refresh_token(text, text, boolean) from public;
+revoke all privileges on function refresh_token(text, text) from public;

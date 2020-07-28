@@ -1,4 +1,4 @@
-create or replace function register(name text, email text, password text,jwt_cookie boolean DEFAULT false, rt_cookie boolean DEFAULT false, csrf boolean DEFAULT true) returns json as $$
+create or replace function register(name text, email text, password text,cookie boolean DEFAULT false) returns json as $$
 declare
     usr record;
 begin
@@ -7,8 +7,8 @@ begin
     returning *
     into usr;
 
-    return login(usr.email, password, jwt_cookie, rt_cookie, csrf);
+    return login(usr.email, password, cookie);
 end
 $$ security definer language plpgsql;
 
-revoke all privileges on function register(text, text, text, boolean, boolean, boolean) from public;
+revoke all privileges on function register(text, text, text, boolean) from public;

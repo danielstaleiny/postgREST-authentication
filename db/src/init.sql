@@ -56,7 +56,6 @@ select settings.set('refresh_token_lifetime', '2592000'); -- 30 days
 \echo # Loading roles and privilege settings
 \ir authorization/roles.sql
 \ir authorization/privileges.sql
-\ir authorization/firewall.sql
 
 \echo # Loading sample data
 \ir sample_data/data.sql
