@@ -1,3 +1,8 @@
+
+# PostgREST
+this project was forked from https://github.com/subzerocloud/postgrest-starter-kit
+
+
 # PostgREST Starter Kit
 
 Base project and tooling for authoring REST API backends with [PostgREST](https://postgrest.com).

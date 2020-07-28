@@ -99,5 +99,5 @@ if not js
 
 * TODO
 ** Front-end -> login flow for web.
-
 ** Front-end -> login flow for web without js.
+** Create script/file to generate tailwind cheatsheet in plain text so it is easily searchable as cheatsheet.

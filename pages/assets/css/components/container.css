@@ -1,0 +1,27 @@
+/* Add container responsive version. */
+/* @screen t { */
+/*     .container { */
+/*         padding-left: 2rem; */
+/*         padding-right: 2rem; */
+/*     } */
+/*     .t\:container { */
+/*         max-width: config('screens.t'); */
+/*         margin-right: auto; */
+/*         margin-left: auto; */
+/*         padding-right: 2rem; */
+/*         padding-left: 2rem; */
+/*     } */
+/* } */
+/* @screen d { */
+/*     .t\:container { */
+/*         max-width: config('screens.d'); */
+/*     } */
+/*     .d\:container { */
+/*         max-width: config('screens.d'); */
+/*         margin-right: auto; */
+/*         margin-left: auto; */
+/*         padding-right: 2rem; */
+/*         padding-left: 2rem; */
+/*     } */
+/* } */
+
