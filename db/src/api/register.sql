@@ -1,4 +1,4 @@
-create or replace function register(name text, email text, password text,cookie boolean DEFAULT false) returns json as $$
+create or replace function register(name text, email text, password text, cookie boolean DEFAULT false) returns json as $$
 declare
     usr record;
 begin

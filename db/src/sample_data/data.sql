@@ -24,11 +24,11 @@ COPY data.todo (id,todo,private,owner_id) FROM STDIN (FREEZE ON, delimiter ',');
 5,item_5,TRUE,2
 6,item_6,FALSE,2
 \.
--- 
+--
 -- restart sequences
 ALTER SEQUENCE data.user_id_seq RESTART WITH 3;
 ALTER SEQUENCE data.todo_id_seq RESTART WITH 7;
--- 
+--
 -- analyze modified tables
 ANALYZE data.user;
 ANALYZE data.session;
