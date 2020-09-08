@@ -94,4 +94,3 @@ if not cookie
 
 * TODO
 ** Front-end -> login flow for web.
-** Create script/file to generate tailwind cheatsheet in plain text so it is easily searchable as cheatsheet.

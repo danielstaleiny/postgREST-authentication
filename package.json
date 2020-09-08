@@ -35,7 +35,8 @@
     "web:hint": "npx hint http://l:8080/",
     "test:db": "node tests/bin/test_db.js",
     "test": "run-p test:*",
-    "test:api": "node scripts/reset-db-now.js && jest"
+    "test:api": "node scripts/reset-db-now.js && jest",
+    "cheatsheet": "node generate-cheatsheet.js"
   },
   "dependencies": {
     "dotenv": "8.2.0",
