@@ -4,17 +4,12 @@ title: PostgREST authentication
 ---
 <main class="container">
     <section id="hide-elem2" class="mx-auto max-w-40">
-        <div id="hide-elem" class="duration-300 transition-opacity">
-            <p>Test Should be hidden by js</p>
-        </div>
-
         <form id="formSubmit" >
-            <!-- <form action="javascript:test();" > -->
-            <label for="fname">First name:</label>
-            <input type="text" id="fname" name="fname" value="">
-            <label for="lname">Last name:</label>
-            <input type="text" id="lname" name="lname" value="">
-            <input type="submit" value="Submit">
+            <label for="email">Your email:</label>
+            <input type="email" id="email" name="email" placeholder="contact@email.com" />
+            <label for="pass">Password:</label>
+            <input type="password" id="pass" name="pass" placeholder="*******" />
+            <button type="submit" role="button">Submit</button>
         </form>
     </section>
 </main>

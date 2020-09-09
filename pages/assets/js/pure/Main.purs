@@ -1,13 +1,16 @@
 module Main where
 
 import Prelude
+
 import Affjax as AX
+import Affjax.RequestBody as RequestBody
 import Affjax.ResponseFormat as ResponseFormat
 import Data.Argonaut.Core as J
+import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Either (Either(..))
 import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Tuple (fst, snd)
+import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unit (unit)
 import Debug.Trace (spy, trace, traceM)
 import Effect (Effect)
@@ -18,16 +21,19 @@ import Effect.Aff.Bus (BusW', make, read, split, write)
 import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Effect.Timer (clearTimeout, setTimeout)
+import Foreign.Object as Object
 import Web.DOM.DOMTokenList (add, remove, toggle) as DOM
-import Web.DOM.Element (Element, classList, className, setClassName, toNode, toEventTarget, getElementsByTagName)
+import Web.DOM.Element (Element, classList, className, fromEventTarget, getAttribute, getElementsByTagName, setClassName, toEventTarget, toNode)
+import Web.DOM.HTMLCollection (toArray, namedItem)
 import Web.DOM.Node (textContent)
 import Web.DOM.NonElementParentNode (getElementById)
-import Web.DOM.HTMLCollection (toArray, namedItem)
-import Web.Event.Event (EventType(..), preventDefault, currentTarget, target )
+import Web.DOM.Text (fromNode, wholeText)
+import Web.Event.Event (EventType(..), preventDefault, currentTarget, target)
 import Web.Event.EventTarget (EventListener, addEventListener, eventListener)
 import Web.HTML (HTMLElement, window)
 import Web.HTML.HTMLDocument (toNonElementParentNode)
-import Web.HTML.HTMLElement (fromElement, hidden, setHidden)
+import Web.HTML.HTMLElement (hidden, offsetParent, setHidden)
+import Web.HTML.HTMLInputElement (HTMLInputElement, fromElement, value)
 import Web.HTML.Window (document)
 
 log_ :: String -> Aff Unit
@@ -98,29 +104,34 @@ fadeOut_ Nothing = log "couldn't find it"
 
 fadeOut_ (Just elem) = fadeOut elem
 
-toggleHidden :: Element -> Effect Unit
-toggleHidden elem = do
-  let
-    htmlele_ = fromElement elem
-  case htmlele_ of
-    (Nothing) -> log "Didn't find element"
-    (Just htmlele) -> do
-      b <- hidden htmlele
-      a <- case b of
-        true -> setHidden false htmlele
-        false -> setHidden true htmlele
-      pure a
+-- toggleHidden :: Element -> Effect Unit
+-- toggleHidden elem = do
+--   let
+--     htmlele_ = fromElement elem
+--   case htmlele_ of
+--     (Nothing) -> log "Didn't find element"
+--     (Just htmlele) -> do
+--       b <- hidden htmlele
+--       a <- case b of
+--         true -> setHidden false htmlele
+--         false -> setHidden true htmlele
+--       pure a
 
-toggleHidden_ :: Maybe Element -> Effect Unit
-toggleHidden_ Nothing = log "Didn't find element"
+-- toggleHidden_ :: Maybe Element -> Effect Unit
+-- toggleHidden_ Nothing = log "Didn't find element"
 
-toggleHidden_ (Just elem) = toggleHidden elem
+-- toggleHidden_ (Just elem) = toggleHidden elem
 
 addClickEvent :: EventListener -> Element -> Effect Unit
 addClickEvent cb elem = do
-  let
-    et = toEventTarget elem
+  let et = toEventTarget elem
   addEventListener (EventType "click") cb false et
+
+
+addSubmitEvent :: EventListener -> Element -> Effect Unit
+addSubmitEvent cb elem = do
+  let et = toEventTarget elem
+  addEventListener (EventType "submit") cb false et
 
 -- JS addEventListener
 -- options = {passive: true}
@@ -204,27 +215,98 @@ updateEvent time bus state = do
               _ <- forkAff $ write state bus
               ignore
 
-main :: Effect Unit
-main = launchAff_ $ liftEffect do
-  doc <- window >>= document
-  elem_ <- toNonElementParentNode >>> getElementById "formSubmit" $ doc -- Maybe elem
-  case elem_ of
-    (Nothing) -> ignore
-    (Just elem) -> do
-      inputs <- getElementsByTagName "input" elem -- get array of inputs under form  -- Effect HTMLCollection
-      -- namedItem looks for id or name string
-      fname <- namedItem "fname" inputs -- Maybe Element
-      lname <- namedItem "lname" inputs -- Maybe Element
-      -- do validation
-      -- result <- AX.request (AX.defaultRequest { url = "http://localhost:3000/", method = Left GET, responseFormat = ResponseFormat.json })
-      -- case result of
-      --   Left err -> liftEffect $ log $ "GET /api response failed to decode: " <> AX.printError err
-      --   Right response -> liftEffect $ log $ "GET /api response: " <> J.stringify response.body
-      traceM fname
-      traceM lname
-      traceM inputs
 
-  log "works"
+
+type Profile = { email :: String, password :: String } 
+
+main :: Effect Unit
+main = launchAff_ do
+  doc <- liftEffect $ window >>= document
+  elem_ <- liftEffect $ toNonElementParentNode >>> getElementById "formSubmit" $ doc -- Maybe elem
+  fn <- do -- Event -> Effect a
+    liftEffect $ eventListener $ \evt -> launchAff_ do
+      liftEffect $ preventDefault evt
+      case target evt of
+        (Nothing) -> ignore
+        (Just evtTarget) -> do
+          case fromEventTarget evtTarget of
+            (Nothing) -> ignore
+            (Just elem) -> do
+              inputs <- liftEffect $ getElementsByTagName "input" elem -- get array of inputs under form  -- Effect HTMLCollection
+              -- namedItem looks for id or name string
+              email_ <- liftEffect $ namedItem "email" inputs -- Maybe Element
+              password_ <- liftEffect $ namedItem "password" inputs -- Maybe Element
+              email <- case email_ of
+                (Nothing) -> pure ""
+                (Just elementko) -> do
+                  case fromElement elementko of
+                    (Nothing) -> pure ""
+                    (Just tttt) -> do -- HTMLInputElement
+                      text <- liftEffect $ value tttt
+                      pure text
+
+              password <- case password_ of
+                (Nothing) -> pure ""
+                (Just elementko) -> do
+                  case fromElement elementko of
+                    (Nothing) -> pure ""
+                    (Just tttt) -> do -- HTMLInputElement
+                      text <- liftEffect $ value tttt
+                      pure text
+
+
+              -- -- do validation
+              let profile = {email: email, password: password} :: Profile
+              result <- AX.post ResponseFormat.json "http://localhost:3000/rpc/login" (Just (RequestBody.json (encodeJson profile)))
+              case result of
+                Left err -> liftEffect $ log $ "GET /api response failed to decode: " <> AX.printError err
+                Right response -> liftEffect $ log $ "GET /api response: " <> J.stringify response.body
+              -- traceM email
+              -- traceM password
+              log_ "fn, Clicky2"
+
+  liftEffect $ fromMaybe ignore $ addSubmitEvent fn <$> elem_
+  log_ "hello"
+
+  -- doc <- liftEffect $ window >>= document
+  -- elem_ <- liftEffect $ toNonElementParentNode >>> getElementById "formSubmit" $ doc -- Maybe elem
+  -- case elem_ of
+  --   (Nothing) -> ignore
+  --   (Just elem) -> do
+  --     inputs <- liftEffect $ getElementsByTagName "input" elem -- get array of inputs under form  -- Effect HTMLCollection
+  --     -- namedItem looks for id or name string
+  --     fname <- liftEffect $ namedItem "fname" inputs -- Maybe Element
+  --     lname <- liftEffect $ namedItem "lname" inputs -- Maybe Element
+  --     -- do validation
+  --     -- result <- AX.request (AX.defaultRequest { url = "http://localhost:3000/", method = Left GET, responseFormat = ResponseFormat.json })
+  --     -- case result of
+  --     --   Left err -> liftEffect $ log $ "GET /api response failed to decode: " <> AX.printError err
+  --     --   Right response -> liftEffect $ log $ "GET /api response: " <> J.stringify response.body
+  --     traceM fname
+  --     traceM lname
+  --     -- traceM inputs
+  -- log_ "should works"
+
+
+--
+  -- doc <- window >>= document
+  -- elem_ <- toNonElementParentNode >>> getElementById "formSubmit" $ doc -- Maybe elem
+  -- case elem_ of
+  --   (Nothing) -> ignore
+  --   (Just elem) -> do
+  --     inputs <- getElementsByTagName "input" elem -- get array of inputs under form  -- Effect HTMLCollection
+  --     -- namedItem looks for id or name string
+  --     fname <- namedItem "fname" inputs -- Maybe Element
+  --     lname <- namedItem "lname" inputs -- Maybe Element
+  --     -- do validation
+  --     -- result <- AX.request (AX.defaultRequest { url = "http://localhost:3000/", method = Left GET, responseFormat = ResponseFormat.json })
+  --     -- case result of
+  --     --   Left err -> liftEffect $ log $ "GET /api response failed to decode: " <> AX.printError err
+  --     --   Right response -> liftEffect $ log $ "GET /api response: " <> J.stringify response.body
+  --     traceM fname
+  --     traceM lname
+  --     traceM inputs
+
   -- fn <- do -- Event -> Effect a
   --   eventListener $ \evt -> do
   --     preventDefault evt
