@@ -1,4 +1,6 @@
 #+TITLE: Todo
+* NEXT
+** Figure out how to call purescript exported function, Main.something most likely, but check it and figure out. I want explicit reference to js function, or I can just create listener to sumbit, but there is better observability if I explicitly call function. 
 
 * TODO
 ** DONE Fix test, change mocha to Jest and make it async/fast.
