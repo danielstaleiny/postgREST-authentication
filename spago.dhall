@@ -3,6 +3,7 @@
   [ "aff"
   , "aff-bus"
   , "affjax"
+  , "argonaut-codecs"
   , "avar"
   , "console"
   , "debug"

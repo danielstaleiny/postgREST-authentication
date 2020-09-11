@@ -1,7 +1,9 @@
 #+TITLE: Todo
-* NEXT
-** Figure out how to call purescript exported function, Main.something most likely, but check it and figure out. I want explicit reference to js function, or I can just create listener to sumbit, but there is better observability if I explicitly call function. 
-
+* PURESCIRPT
+** TODO create validation like in  https://www.youtube.com/watch?v=BovTQeDK7XII
+** TODO show result on the page, or think about saving it to localstate, and navigate to next page, each file should have it's own scirpt with main 
+** TODO Todo Re-factor and use more advance composition methods, don't unwrap wrap, unwrap etc.
+** TODO Try callbag or have a look how to simply add trottling for the events.
 * TODO
 ** DONE Fix test, change mocha to Jest and make it async/fast.
 ** Move some of the script to npm, and use npm as script place.
@@ -9,6 +11,7 @@
 #+BEGIN_SRC bash
 docker logs --follow ContainerName/ContainerID
 #+END_SRC
+
 
 * Session management
 ** login/register for JWT

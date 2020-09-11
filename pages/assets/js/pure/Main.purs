@@ -23,12 +23,12 @@ import Effect.Console (log, logShow)
 import Effect.Timer (clearTimeout, setTimeout)
 import Foreign.Object as Object
 import Web.DOM.DOMTokenList (add, remove, toggle) as DOM
-import Web.DOM.Element (Element, classList, className, fromEventTarget, getAttribute, getElementsByTagName, setClassName, toEventTarget, toNode)
+import Web.DOM.Element (Element, classList, className, fromEventTarget, getAttribute, getElementsByTagName, setAttribute, setClassName, toEventTarget, toNode)
 import Web.DOM.HTMLCollection (toArray, namedItem)
-import Web.DOM.Node (textContent)
+import Web.DOM.Node (setTextContent, textContent)
 import Web.DOM.NonElementParentNode (getElementById)
 import Web.DOM.Text (fromNode, wholeText)
-import Web.Event.Event (EventType(..), preventDefault, currentTarget, target)
+import Web.Event.Event (Event, EventType(..), currentTarget, preventDefault, target)
 import Web.Event.EventTarget (EventListener, addEventListener, eventListener)
 import Web.HTML (HTMLElement, window)
 import Web.HTML.HTMLDocument (toNonElementParentNode)
@@ -101,7 +101,6 @@ fadeOut elem = do
 
 fadeOut_ :: Maybe Element -> Effect Unit
 fadeOut_ Nothing = log "couldn't find it"
-
 fadeOut_ (Just elem) = fadeOut elem
 
 -- toggleHidden :: Element -> Effect Unit
@@ -151,14 +150,6 @@ ignore_ :: forall m a. a -> Applicative m => m Unit
 ignore_ _ = pure unit
 
 
-
-            
-
--- main :: Effect Unit
--- main = launchAff_ $ liftEffect do
---   log "works"
---
---
 
 getElem :: Effect (Maybe Element)
 getElem = do
@@ -219,10 +210,114 @@ updateEvent time bus state = do
 
 type Profile = { email :: String, password :: String } 
 
+
+
+
+
+               --     >>> pure
+               --     >>= getElementById id
+               --     >>= map toNode
+               --     >>> map textContent
+               --     >>> fromMaybe (pure fallback)
+
+
+getById :: String -> Effect (Maybe Element)
+getById id =
+    window
+      >>= document
+      >>= toNonElementParentNode
+      >>> getElementById id
+
+sendForm :: String -> EventListener -> Effect Unit
+sendForm id fn = do
+  elem_ <- getById id
+  case elem_ of
+    (Nothing) -> pure unit
+    (Just elem) -> addSubmitEvent fn elem
+
+
+
+-- Event -> Effect unit -- preventDefault
+-- Event -> Effect Event -- fn
+-- Event -> Effect Event -- fn2
+
+
+getElementFromEvent :: Event -> Maybe Element
+getElementFromEvent = target >>> map fromEventTarget >>> join
+
+getValueFromElement :: String -> Maybe Element -> Effect (Maybe String)
+getValueFromElement _ Nothing = pure Nothing
+getValueFromElement inputName (Just el) = do
+  htmlcollection <- getElementsByTagName "input" el
+  elem_ <- namedItem inputName htmlcollection
+  case elem_ of
+    (Nothing) -> pure Nothing
+    (Just elem) -> do
+      case fromElement elem of
+        (Nothing) -> pure Nothing
+        (Just inputElem) -> do
+          txt <- value inputElem
+          pure $ Just txt
+
+
+
+getErrorPrintElement :: Profile -> Effect Unit
+getErrorPrintElement profile = launchAff_ $ do
+  elem_ <- liftEffect $ getById "error-message" -- Maybe Element
+  case elem_ of
+    (Just elem) -> do
+      res <- login profile
+      case res of
+        Left err -> liftEffect $ setTextContent "test error" $ toNode elem
+        Right response ->
+          liftEffect $ log response
+      
+    _ -> liftEffect $ pure unit
+  liftEffect $ pure unit
+
+
+
+fnSendForm :: Effect EventListener
+fnSendForm = eventListener fn
+  where
+    fn = \evt -> do
+      _ <- preventDefault evt
+      let elem_ = getElementFromEvent evt -- Maybe Element
+      email_ <- getValueFromElement "email" elem_
+      password_ <- getValueFromElement "password" elem_
+      case [email_, password_] of
+        [(Just email), (Just password)] -> do
+          let profile = {email: email, password: password} :: Profile
+          getErrorPrintElement profile
+        -- otherwise
+        _ -> pure unit
+      pure evt
+
+
+
+login :: Profile -> Aff (Either String String)
+login profile = do
+  let endpoint = "rpc/login"
+  let root = "http://localhost:3000/"
+  let api = root <> endpoint
+  res <- AX.post ResponseFormat.json api (Just (RequestBody.json (encodeJson profile)))
+  case res of
+    Left err -> liftEffect do
+      let errS = AX.printError err
+      log $ "GET " <> api <> " response failed to decode:\n" <> errS
+      pure $ Left errS
+    Right response -> liftEffect do
+      pure $ Right $ J.stringify response.body
+
+
+                                                                      -- case result of
+                                                                      --   Left err -> liftEffect $ log $ "GET /api response failed to decode: " <> AX.printError err
+                                                                      -- Right response -> liftEffect $ log $ "GET /api response: " <> J.stringify response.body
+
 main :: Effect Unit
 main = launchAff_ do
-  doc <- liftEffect $ window >>= document
-  elem_ <- liftEffect $ toNonElementParentNode >>> getElementById "formSubmit" $ doc -- Maybe elem
+  let profile = {email: "email", password: "pass"} :: Profile
+  liftEffect $ getErrorPrintElement profile
   fn <- do -- Event -> Effect a
     liftEffect $ eventListener $ \evt -> launchAff_ do
       liftEffect $ preventDefault evt
@@ -265,9 +360,13 @@ main = launchAff_ do
               -- traceM password
               log_ "fn, Clicky2"
 
-  liftEffect $ fromMaybe ignore $ addSubmitEvent fn <$> elem_
+  -- liftEffect $ sendForm "formSubmit" fn
+  liftEffect $ sendForm "formSubmit" =<< fnSendForm
+  -- elem_ <- liftEffect $ getById "formSubmit"
+  -- liftEffect $ fromMaybe ignore $ sendForm "formSubmit" fn
+  -- liftEffect $ fromMaybe ignore $ addSubmitEvent fn <$> elem_
   log_ "hello"
-
+  
   -- doc <- liftEffect $ window >>= document
   -- elem_ <- liftEffect $ toNonElementParentNode >>> getElementById "formSubmit" $ doc -- Maybe elem
   -- case elem_ of
@@ -320,16 +419,16 @@ main = launchAff_ do
 
   -- fromMaybe ignore $ addClickEvent fn <$> elem_
 
-getById :: String -> String -> Effect String
-getById fallback id =
-  window
-    >>= document
-    >>= toNonElementParentNode
-    >>> pure
-    >>= getElementById id
-    >>= map toNode
-    >>> map textContent
-    >>> fromMaybe (pure fallback)
+-- getById :: String -> String -> Effect String
+-- getById fallback id =
+--   window
+--     >>= document
+--     >>= toNonElementParentNode
+--     >>> pure
+--     >>= getElementById id
+--     >>= map toNode
+--     >>> map textContent
+--     >>> fromMaybe (pure fallback)
 
 -- forall a. Show a => a -> Effect Unit
 -- logShow
