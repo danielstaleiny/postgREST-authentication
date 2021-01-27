@@ -77,7 +77,7 @@ services:
   #   volumes:
   #     - "./openresty/nginx:/usr/local/openresty/nginx/conf"
   #     - "./openresty/html:/usr/local/openresty/nginx/html"
-  #     - "./openresty/lua:/usr/local/openresty/lualib/user_code"
+  #     - "./openresty/lua:/usr/local/openresty/nginx/lua"
   #   depends_on:
   #     - db
 
