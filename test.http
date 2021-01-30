@@ -3,12 +3,17 @@
 :http = http
 :host = localhost:3000
 :appkey = key
-:api = :http://:host
+:raw = :http://:host
+:api = :http://:host/api
 
 :header = <<
 apikey: :appkey
 User-Agent: restclient/2.0
 Content-Type: application/json
+
+#GET PING
+GET :raw/
+:header
 
 #GET PING
 GET :api/
@@ -61,7 +66,7 @@ GET :api/sessions
 POST :api/rpc/refresh_token
 :header
 {
-  "refresh_token": :refresh_token
+  "refresh_token": ":refresh_token"
 }
 
 #Logout
@@ -78,8 +83,14 @@ GET :api/rpc/me
 #GET TODO
 GET :api/todos?id=eq.1
 :headerT
+Accept: text/csv
 
-#GET TODO
+#GET TODO - object - overriding header on server side to get 1 item only
+GET :api/todos/1
+:headerT
+
+
+#GET TODO - array
 GET :api/todos?id=eq.2
 :headerT
 
@@ -91,4 +102,3 @@ GET :api/todos?limit=1
 #GET TODO2
 GET :api/todos
 :headerT
-Accept: text/csv
