@@ -1,4 +1,5 @@
 #+TITLE: Todo
+# triggerbuild
 * PURESCIRPT
 ** TODO create validation like in  https://www.youtube.com/watch?v=BovTQeDK7XII
 ** TODO show result on the page, or think about saving it to localstate, and navigate to next page, each file should have it's own scirpt with main 
